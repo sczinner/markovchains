@@ -1,24 +1,30 @@
 library(plot.matrix)
+
+#####generates realizations of a random markov chain and then fits a markov chain
+#to the simulated data
+
 ###### generate (discrete finite) markov chains
 num_states<-4
 
 
 chain_length = 100
-num_chains = 10
+num_chains = 3
 
 
 chains<-matrix(data=NA,nrow=chain_length,ncol=num_chains)
 
-#initial state
+#random initial state vector
 rrvector<-c(0,runif(num_states-1))
 orderedvector<-sort(rrvector)#sort
-pi<-c(orderedvector[2:num_states],1)-orderedvector
-pi_cdf<-cumsum(pi)
+pi<-c(orderedvector[2:num_states],1)-orderedvector#the random initial state vector
+pi_cdf<-cumsum(pi)#the cdf of above
+
+#sets the random initial state of all chains 
 rr<-runif(num_chains)
 pi_realized<-matrix(data=pi_cdf,nrow = num_chains,ncol=num_states,byrow=TRUE)<=rr
 chains[1,]=apply(pi_realized,1,function(x){(which(x==F))[1]})#the new state is the first false value in the row
 
-
+#generates a random transition matrix
 randomProbMatrix<-function(n){
   rrmatrix<-matrix(data=c(rep(0,n),runif((n-1)*n)),ncol=n,nrow=n)
   orderedmatrix<-t(apply(rrmatrix,1,sort))# sorts rows
@@ -28,7 +34,7 @@ randomProbMatrix<-function(n){
 
 PP<-randomProbMatrix(num_states)
 
-
+#generates the random paths from the random probability matrix
 for(nn in 2:chain_length){
   trans_probs<-PP[chains[nn-1,,drop=F],,drop=F]
   trans_cdf<-t(apply(trans_probs,1,cumsum))
@@ -61,9 +67,9 @@ for(nn in 2:chain_length){
 }
 PP_hat<-Nij/matrix(data=Ni,ncol=num_states,nrow=num_states,byrow=FALSE)
 
-
+#compare actual transition matrix(PP) to estimated(PP_hat) and same for initial vector
+par(mar=c(5.1, 4.1, 4.1, 4.1)) 
 plot(PP_hat)
 plot(PP)
 plot(as.matrix(pi))
 plot(as.matrix(pi_hat))
-
