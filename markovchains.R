@@ -17,12 +17,13 @@ chains<-matrix(data=NA,nrow=chain_length,ncol=num_chains)
 rrvector<-c(0,runif(num_states-1))
 orderedvector<-sort(rrvector)#sort
 pi<-c(orderedvector[2:num_states],1)-orderedvector#the random initial state vector
-pi_cdf<-cumsum(pi)#the cdf of above
+# pi_cdf<-cumsum(pi)#the cdf of above
 
 #sets the random initial state of all chains 
-rr<-runif(num_chains)
-pi_realized<-matrix(data=pi_cdf,nrow = num_chains,ncol=num_states,byrow=TRUE)<=rr
-chains[1,]=apply(pi_realized,1,function(x){(which(x==F))[1]})#the new state is the first false value in the row
+#rr<-runif(num_chains)
+#pi_realized<-matrix(data=pi_cdf,nrow = num_chains,ncol=num_states,byrow=TRUE)<=rr
+# chains[1,]=apply(pi_realized,1,function(x){(which(x==F))[1]})#the new state is the first false value in the row
+chains[1,]<-sample(x=1:num_states,size=num_chains,replace=TRUE,prob=pi)
 
 #generates a random transition matrix
 randomProbMatrix<-function(n){
@@ -37,10 +38,11 @@ PP<-randomProbMatrix(num_states)
 #generates the random paths from the random probability matrix
 for(nn in 2:chain_length){
   trans_probs<-PP[chains[nn-1,,drop=F],,drop=F]
-  trans_cdf<-t(apply(trans_probs,1,cumsum))
+  #trans_cdf<-t(apply(trans_probs,1,cumsum))
   rr<-runif(num_chains)
-  trans_realized<-trans_cdf<=rr
-  chains[nn,]=apply(trans_realized,1,function(x){(which(x==F))[1]})#the new state is the first false value in the row
+  #trans_realized<-trans_cdf<=rr
+  #chains[nn,]=apply(trans_realized,1,function(x){(which(x==F))[1]})#the new state is the first false value in the row
+  chains[nn,]<-apply(trans_probs,1,function(x) sample(x=1:num_states,size=1,replace=TRUE,prob=x))
 }
 
 matplot(chains, type='l', lty=1, col=1:num_chains, ylim=c(0,num_states), ylab='state', xlab='time')
